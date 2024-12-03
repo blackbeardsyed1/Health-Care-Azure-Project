@@ -1,0 +1,139 @@
+Healthcare Revenue Cycle Management (RCM) Data Pipeline
+Project Overview
+This project implements an end-to-end data pipeline for Healthcare Revenue Cycle Management (RCM), leveraging the Azure Data Engineering stack. The goal is to streamline the ingestion, processing, and transformation of diverse healthcare data sources into meaningful insights. Using the Medallion Architecture, this pipeline ensures a clean, structured, and scalable flow of data, empowering business users and data scientists with actionable analytics.
+
+Problem Domain
+Revenue Cycle Management (RCM) is the backbone of healthcare financial operations. It encompasses the complete lifecycle from patient appointments to provider payments. Key processes include:
+
+Patient Visit: Capturing patient and insurance details.
+Service Delivery: Recording the services provided to the patient.
+Billing and Claims: Generating bills and submitting claims to insurance providers.
+Payments and Follow-Ups: Managing partial payments and patient contributions.
+Tracking and Improvement: Monitoring key metrics to ensure financial health.
+Critical RCM components:
+
+Accounts Receivable (AR): Focusing on cash flow and minimizing collection periods.
+Accounts Payable (AP): Ensuring timely payments to vendors and suppliers.
+Solution Architecture
+This solution uses the Medallion Architecture (Landing → Bronze → Silver → Gold) to handle and transform the following datasets:
+
+Datasets
+EMR Data (Azure SQL DB):
+
+Patients
+Providers
+Departments
+Transactions
+Encounters
+Claims Data (Flat Files - Monthly Updates):
+
+Insurance claims data ingested from a Datalake.
+Public APIs:
+
+NPI Data: National Provider Identifier (standardized healthcare providers' info).
+ICD Codes: Standardized diagnosis codes.
+Data Pipeline Layers
+Landing: Raw data ingestion (flat files, SQL, APIs).
+Bronze: Raw data in Parquet format (source of truth).
+Silver: Cleaned, enriched data modeled into a Common Data Model (CDM) with SCD2.
+Gold: Aggregated Fact and Dimension tables for business analytics.
+Technologies Used
+Azure Data Factory: Data ingestion and orchestration.
+Azure Databricks: Data transformation and processing.
+Azure Data Lake Storage Gen2: Storing raw and processed data in a structured hierarchy.
+Delta Lake: Enabling ACID transactions and efficient table management.
+Azure Key Vault: Managing sensitive credentials securely.
+Key Features
+Ingestion Pipeline:
+
+Automated ingestion from Azure SQL DB, flat files, and APIs.
+Metadata-driven approach for scalability using load_config.csv.
+Audit logging for all data ingestion activities.
+Bronze Layer:
+
+Stores raw data in Parquet format in ADLS Gen2.
+Supports incremental and full loads with watermarks for efficiency.
+Silver Layer:
+
+Cleans and enriches data with SCD2 for historical tracking.
+Implements the Common Data Model (CDM) for consistent schema.
+Gold Layer:
+
+Creates Fact and Dimension tables for AR metrics (e.g., AR > 90 days, Days in AR).
+Provides KPIs to measure and improve financial performance.
+Parallel Processing:
+
+Optimized for scalability by processing multiple entities in parallel.
+Unified Catalog:
+
+Implements Unity Catalog for secure and organized data management.
+Metrics and KPIs
+Accounts Receivable (AR) Metrics:
+AR > 90 days: Measure the percentage of overdue payments.
+Days in AR: Calculate the average number of days to collect receivables.
+Example:
+
+AR > 90 Days = 200K / 1M = 20%
+
+Days in AR = 400K / 10K per day = 40
+
+Data Pipeline Implementation
+Bronze Layer
+Ingestion Process:
+
+Reads from the configuration file (load_config.csv) using ADF's Lookup Activity.
+Executes full or incremental loads based on metadata.
+Moves processed files to an archive folder for traceability.
+
+Audit Logging:
+
+Captures source, table, number of rows copied, and load timestamp.
+Silver Layer
+Data Cleaning:
+
+Removes duplicates and invalid records.
+Maps ICD and NPI codes for standardization.
+SCD2 Implementation:
+
+Tracks historical changes in dimension tables.
+Gold Layer
+Fact Tables:
+
+Metrics like AR > 90 Days and Days in AR for business insights.
+Dimension Tables:
+
+Provides context such as Patients, Providers, and Departments.
+Deployment and Configuration
+Azure Services
+Azure Data Factory:
+
+Linked Services for SQL DB, ADLS Gen2, Delta Lake, and Key Vault.
+Activities: Lookup, ForEach, Copy Data, and custom SQL queries.
+Azure Databricks:
+
+Scripts for data transformation and Delta Lake management.
+ADLS Gen2 Storage:
+
+Hierarchical structure:
+
+ttadlsdev/
+  ├── landing/
+  ├── bronze/
+  ├── silver/
+  ├── gold/
+
+How to Run
+Set Up Infrastructure:
+
+Deploy necessary Azure services (SQL DB, ADLS Gen2, Databricks).
+Configure Key Vault for secure credential storage.
+Load Configurations:
+
+Update load_config.csv with source and target paths.
+Run Pipelines:
+
+Trigger pipelines in ADF to process and transform data.
+
+Access Data:
+
+Analyzing data in Gold Layer using BI tools like Power BI or Tableau.
